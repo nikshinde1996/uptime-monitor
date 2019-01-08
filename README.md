@@ -1,5 +1,5 @@
 
-# uptime-monitior
+# uptime-monitior - no framework, no npm.
 
 ### Development Requirements
 
