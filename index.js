@@ -30,9 +30,6 @@ var server = http.createServer(function(req,res){
     req.on('end', function(){
         buffer += decorder.end();
 
-        // send the response
-        res.end('Hello world response\n');
-
         // choose handler this request should go to
         var chosenHandler = typeof(router[trimmedPath]) !== 'undefined' ? router[trimmedPath] : handlers.notFound; 
 
