@@ -1,88 +1,42 @@
-var http = require('http');
-var url = require('url');
-var StringDecoder = require('string_decoder').StringDecoder;
-var config = require('./config/config.js');
 
-var server = http.createServer(function(req,res){
-    // get url and parse it
-    var parsedUrl = url.parse(req.url,true);
+const http = require('http');
+const http = require('https');
+const url = require('url');
+const StringDecoder = require('string_decoder').StringDecoder;
+const config = require('./config/config.js');
+const {unifiedServer} = require('./server/server');
 
-    // get the path
-    var path = parsedUrl.pathname;
-    var trimmedPath = path.replace(/^\/+|\/+$/g,'');
-
-    // get query string as an object
-    var queryStringObject = parsedUrl.query;
-
-    // get http method
-    var method = req.method.toLowerCase();
-
-    // get headers as an object
-    var headers = req.headers;
-
-    // get the payload if any
-    var decorder = new StringDecoder('utf-8')
-    var buffer = '';
-
-    // request on event 'data' calls the callback function
-    req.on('data',function(data){
-        buffer += decorder.write(data);
-    });
-    req.on('end', function(){
-        buffer += decorder.end();
-
-        // choose handler this request should go to
-        var chosenHandler = typeof(router[trimmedPath]) !== 'undefined' ? router[trimmedPath] : handlers.notFound; 
-
-        // construct data object to send to the handler
-        var data = {
-            'trimmedPath' : trimmedPath,
-            'queryStringObject' : queryStringObject,
-            'method' : method,
-            'headers' : headers,
-            'payload' : buffer
-        };
-
-        // route the request to the handler specified in the router
-        chosenHandler(data, function(statusCode, payload) {
-            // use the statusCode called back by the handler or use the default
-            statusCode = typeof(statusCode) === 'number' ? statusCode : 200;
-
-            // use the payload called back by the handler or use the default
-            payload = typeof(payload) === 'object' ? payload : {};
-
-            // convert the payload to the string
-            var payloadString = JSON.stringify(payload);
-            
-            // return the response
-            res.setHeader('Content-Type','application/json');
-            res.writeHead(statusCode);
-            res.end(payloadString);
-
-            console.log('Returning this response : ',statusCode, payloadString);
-        });
-
-    });
-
+// Instantiate the HTTP server
+const server = http.createServer(function(req,res){
+    unifiedServer(req,res);
 });
 
-server.listen(config.port, function(){
-    console.log('Server is listening at port : '+config.port+' in '+config.envName+' environment.');
+// Start the HTTP server
+server.listen(config.httpPort, function(){
+    console.log('Server is listening at port : '+config.httpPort+' in '+config.envName+' environment.');
 });
 
-// define the handlers
-var handlers = {};
+// Instantiate the HTTPS server
+const server = https.createServer(function(req,res){
+    unifiedServer(req,res);
+});
 
-// sample handler
-handlers.sample = function(data, callback){
-    // callback HTTP status code and payload
-    callback(406, {'name' : 'sample handler'});
-}
+// Start the HTTPS server
+server.listen(config.httpsPort, function(){
+    console.log('Server is listening at port : '+config.httpsPort+' in '+config.envName+' environment.');
+});
 
-// not found handler
-handlers.notFound = function(data, callback){
-    callback(404);
-}
+// define the handlers object
+var handlers = {
+    sample : (data,callback) => {
+        // sample handler : callback HTTP status code and payload
+        callback(406, {'name' : 'sample handler'});
+    },
+    notFound : () => {
+        // not found handler
+        callback(404);
+    }
+};
 
 // define the request router
 var router = {
