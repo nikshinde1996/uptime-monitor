@@ -1,6 +1,6 @@
 
 // Server logic for both 'http' and 'https' servers
-export default function unifiedServer(req,res) {
+const unifiedServer = (req,res) => {
 
     // get url and parse it
     var parsedUrl = url.parse(req.url,true);
