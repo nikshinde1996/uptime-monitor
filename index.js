@@ -33,19 +33,20 @@ httpsServer.listen(config.httpsPort, function(){
 });
 
 // define the handlers object
-var handlers = {
-    sample : (data,callback) => {
-        // sample handler : callback HTTP status code and payload
-        callback(406, {'name' : 'sample handler'});
-    },
-    notFound : () => {
-        // not found handler
-        callback(404);
-    }
-};
+var handlers = {};
+
+// ping handler
+handlers.ping = (data, callback) => {
+    callback(200);
+}
+
+// not found handler
+handlers.notFound = (data, callback) => {
+    callback(404);
+}
 
 // define the request router
 var router = {
-    'sample' : handlers.sample
+    'ping' : handlers.ping
 }
 
