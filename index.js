@@ -1,9 +1,7 @@
 
 const http = require('http');
 const https = require('https');
-const url = require('url');
 const fs = require('fs');
-const StringDecoder = require('string_decoder').StringDecoder;
 const config = require('./config/config.js');
 const {unifiedServer} = require('./server/server');
 
@@ -31,22 +29,3 @@ const httpsServer = https.createServer(httpsServerOptions, function(req,res){
 httpsServer.listen(config.httpsPort, function(){
     console.log('Server is listening at port : '+config.httpsPort+' in '+config.envName+' environment.');
 });
-
-// define the handlers object
-var handlers = {};
-
-// ping handler
-handlers.ping = (data, callback) => {
-    callback(200);
-}
-
-// not found handler
-handlers.notFound = (data, callback) => {
-    callback(404);
-}
-
-// define the request router
-var router = {
-    'ping' : handlers.ping
-}
-

@@ -1,3 +1,23 @@
+const url = require('url');
+const StringDecoder = require('string_decoder').StringDecoder;
+
+// define the handlers object
+var handlers = {};
+
+// ping handler
+handlers.ping = (data, callback) => {
+    callback(200);
+}
+
+// not found handler
+handlers.notFound = (data, callback) => {
+    callback(404);
+}
+
+// define the request router
+var router = {
+    'ping' : handlers.ping
+}
 
 // Server logic for both 'http' and 'https' servers
 const unifiedServer = (req,res) => {
@@ -62,3 +82,5 @@ const unifiedServer = (req,res) => {
 
     });
 }
+
+module.exports = {unifiedServer};
