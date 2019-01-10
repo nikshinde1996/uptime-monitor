@@ -20,7 +20,7 @@ var router = {
 }
 
 // Server logic for both 'http' and 'https' servers
-const unifiedServer = (req,res) => {
+module.exports.unifiedServer = (req,res) => {
 
     // get url and parse it
     var parsedUrl = url.parse(req.url,true);
@@ -82,5 +82,3 @@ const unifiedServer = (req,res) => {
 
     });
 }
-
-module.exports = {unifiedServer};
