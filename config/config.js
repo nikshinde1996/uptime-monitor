@@ -9,21 +9,24 @@ var environments = {};
 environments.development = {
     'httpPort' : 3000,
     'httpsPort' : 3001,
-    'envName' : 'development'
+    'envName' : 'development',
+    'hashingSecret' : 'HHJhjhhghJBNM'
 }
 
 // Staging environment
 environments.staging = {
     'httpPort' : 5000,
     'httpsPort' : 5001,
-    'envName' : 'staging'
+    'envName' : 'staging',
+    'hashingSecret' : 'wehuUHJJHjbhb'
 }
 
 // Production environment
 environments.production = {
     'httpPort' : 7000,
     'httpsPort' : 7001,
-    'envName' : 'production'
+    'envName' : 'production',
+    'hashingSecret' : 'GHGHjhjhjhJHHJ'
 }
 
 var currentEnv = typeof(process.env.NODE_ENV) == 'string' ? process.env.NODE_ENV.toLowerCase() : '';
