@@ -69,5 +69,6 @@ module.exports.unifiedServer = (req,res) => {
 
 // define the request router
 var router = {
-    'ping' : handlers.ping
+    'ping' : handlers.ping,
+    'users' : handlers.users
 }
