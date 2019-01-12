@@ -23,15 +23,15 @@ module.exports.unifiedServer = (req,res) => {
     var headers = req.headers;
 
     // get the payload if any
-    var decorder = new StringDecoder('utf-8')
+    var decoder = new StringDecoder('utf-8')
     var buffer = '';
 
     // request on event 'data' calls the callback function
     req.on('data',function(data){
-        buffer += decorder.write(data);
+        buffer += decoder.write(data);
     });
     req.on('end', function(){
-        buffer += decorder.end();
+        buffer += decoder.end();
 
         // choose handler this request should go to
         var chosenHandler = typeof(router[trimmedPath]) !== 'undefined' ? router[trimmedPath] : handlers.notFound; 

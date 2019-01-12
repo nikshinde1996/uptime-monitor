@@ -12,7 +12,7 @@ const httpServer = http.createServer(function(req,res){
 
 // Start the HTTP server
 httpServer.listen(config.httpPort, function(){
-    console.log('Server is listening at port : '+config.httpPort+' in '+config.envName+' environment.');
+    console.log('HTTP server is listening at port : '+config.httpPort+' in '+config.envName+' environment.');
 });
 
 const httpsServerOptions = {
@@ -27,5 +27,5 @@ const httpsServer = https.createServer(httpsServerOptions, function(req,res){
 
 // Start the HTTPS server
 httpsServer.listen(config.httpsPort, function(){
-    console.log('Server is listening at port : '+config.httpsPort+' in '+config.envName+' environment.');
+    console.log('HTTPS server is listening at port : '+config.httpsPort+' in '+config.envName+' environment.');
 });
