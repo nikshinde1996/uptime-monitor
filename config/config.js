@@ -10,7 +10,8 @@ environments.development = {
     'httpPort' : 3000,
     'httpsPort' : 3001,
     'envName' : 'development',
-    'hashingSecret' : 'HHJhjhhghJBNM'
+    'hashingSecret' : 'HHJhjhhghJBNM',
+    'maxChecks' : 5
 }
 
 // Staging environment
@@ -18,7 +19,8 @@ environments.staging = {
     'httpPort' : 5000,
     'httpsPort' : 5001,
     'envName' : 'staging',
-    'hashingSecret' : 'wehuUHJJHjbhb'
+    'hashingSecret' : 'wehuUHJJHjbhb',
+    'maxChecks' : 5
 }
 
 // Production environment
@@ -26,7 +28,8 @@ environments.production = {
     'httpPort' : 7000,
     'httpsPort' : 7001,
     'envName' : 'production',
-    'hashingSecret' : 'GHGHjhjhjhJHHJ'
+    'hashingSecret' : 'GHGHjhjhjhJHHJ',
+    'maxChecks' : 5
 }
 
 var currentEnv = typeof(process.env.NODE_ENV) == 'string' ? process.env.NODE_ENV.toLowerCase() : '';
