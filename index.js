@@ -1,31 +1,20 @@
+const server = require('./server/server');
+const worker = require('./server/worker');
 
-const http = require('http');
-const https = require('https');
-const fs = require('fs');
-const config = require('./config/config.js');
-const {unifiedServer} = require('./server/server');
+// Declare the app
+var app = {};
 
-// Instantiate the HTTP server
-const httpServer = http.createServer(function(req,res){
-    unifiedServer(req,res);
-});
+// init the function
+app.init = () => {
+    // start the server
+    server.init();
 
-// Start the HTTP server
-httpServer.listen(config.httpPort, function(){
-    console.log('HTTP server is listening at port : '+config.httpPort+' in '+config.envName+' environment.');
-});
-
-const httpsServerOptions = {
-    key : fs.readFileSync('./https/key.pem'),
-    cert : fs.readFileSync('./https/cert.pem')
+    // start the worker
+    worker.init();
 };
 
-// Instantiate the HTTPS server
-const httpsServer = https.createServer(httpsServerOptions, function(req,res){
-    unifiedServer(req,res);
-});
+// Execute the app
+app.init();
 
-// Start the HTTPS server
-httpsServer.listen(config.httpsPort, function(){
-    console.log('HTTPS server is listening at port : '+config.httpsPort+' in '+config.envName+' environment.');
-});
+// Export the app
+module.exports = app;

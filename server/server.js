@@ -1,10 +1,18 @@
 const url = require('url');
+const http = require('http');
+const https = require('https');
+const fs = require('fs');
+const path = require('path');
+const config = require('../config/config.js');
 const StringDecoder = require('string_decoder').StringDecoder;
 const handlers = require('../lib/handlers');
 const helpers = require('../lib/helpers')
 
+// Instantiate the server
+var server = {};
+
 // Server logic for both 'http' and 'https' servers
-module.exports.unifiedServer = (req,res) => {
+server.unifiedServer = (req,res) => {
 
     // get url and parse it
     var parsedUrl = url.parse(req.url,true);
@@ -34,7 +42,7 @@ module.exports.unifiedServer = (req,res) => {
         buffer += decoder.end();
 
         // choose handler this request should go to
-        var chosenHandler = typeof(router[trimmedPath]) !== 'undefined' ? router[trimmedPath] : handlers.notFound; 
+        var chosenHandler = typeof(server.router[trimmedPath]) !== 'undefined' ? server.router[trimmedPath] : handlers.notFound; 
 
         // construct data object to send to the handler
         var data = {
@@ -67,10 +75,43 @@ module.exports.unifiedServer = (req,res) => {
     });
 }
 
+// Instantiate the HTTP server
+server.httpServer = http.createServer(function(req,res){
+    server.unifiedServer(req,res);
+});
+
+server.httpsServerOptions = {
+    key : fs.readFileSync(path.join(__dirname,'/../https/key.pem')),
+    cert : fs.readFileSync(path.join(__dirname,'/../https/cert.pem'))
+};
+
+// Instantiate the HTTPS server
+server.httpsServer = https.createServer(server.httpsServerOptions, function(req,res){
+    serverunifiedServer(req,res);
+});
+
 // define the request router
-var router = {
+server.router = {
     'ping' : handlers.ping,
     'users' : handlers.users,
     'tokens' : handlers.tokens,
     'checks' : handlers.checks
 }
+
+// Init the server script
+server.init = ()=>{
+
+    // Start the HTTP server
+    server.httpServer.listen(config.httpPort, function(){
+        console.log('HTTP server is listening at port : '+config.httpPort+' in '+config.envName+' environment.');
+    });
+
+    // Start the HTTPS server
+    server.httpsServer.listen(config.httpsPort, function(){
+        console.log('HTTPS server is listening at port : '+config.httpsPort+' in '+config.envName+' environment.');
+    });
+
+};
+
+// Export the server
+module.exports = server;
