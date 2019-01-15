@@ -11,7 +11,12 @@ environments.development = {
     'httpsPort' : 3001,
     'envName' : 'development',
     'hashingSecret' : 'HHJhjhhghJBNM',
-    'maxChecks' : 5
+    'maxChecks' : 5,
+    'twilio' : {
+        'accountSid' : '**********************************',
+        'authToken' : '***********************************',
+        'fromPhone' : '************'
+    }
 }
 
 // Staging environment
@@ -20,7 +25,12 @@ environments.staging = {
     'httpsPort' : 5001,
     'envName' : 'staging',
     'hashingSecret' : 'wehuUHJJHjbhb',
-    'maxChecks' : 5
+    'maxChecks' : 5,
+    'twilio' : {
+        'accountSid' : '**********************************',
+        'authToken' : '***********************************',
+        'fromPhone' : '************'
+    }
 }
 
 // Production environment
@@ -29,7 +39,12 @@ environments.production = {
     'httpsPort' : 7001,
     'envName' : 'production',
     'hashingSecret' : 'GHGHjhjhjhJHHJ',
-    'maxChecks' : 5
+    'maxChecks' : 5,
+    'twilio' : {
+        'accountSid' : '**********************************',
+        'authToken' : '***********************************',
+        'fromPhone' : '************'
+    }
 }
 
 var currentEnv = typeof(process.env.NODE_ENV) == 'string' ? process.env.NODE_ENV.toLowerCase() : '';
