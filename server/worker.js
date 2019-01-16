@@ -4,7 +4,8 @@ const https = require('https');
 const fs = require('fs');
 const path = require('path');
 const _data = require('../lib/data.js');
-const helpers = require('../lib/helpers')
+const helpers = require('../lib/helpers');
+const _logs = require('../lib/log');
 
 // Instantiate the worker object
 var worker = {};
@@ -28,12 +29,12 @@ worker.gatherAllChecks = () => {
                         // validate the check data
                         worker.validateCheckData(checkData);
                     }else {
-                        console.log("Error : failed to read check data");
+                        console.log('Error : failed to read check data - ',error);
                     }
                 });
             });
         }else {
-            console.log('Error : failed to find any checks to process');
+            console.log('Error : failed to find any checks to process - ',error);
         }
     });
 };
@@ -143,10 +144,15 @@ worker.performCheckOutcome = (checkData, checkOutcome) => {
     // decide if alert is required
     var alertRequired = checkData.lastChecked && checkData.state !== state ? true : false;
 
+    var timeOfCheck = Date.now();
+
+    // log the processed data so far
+    worker.log(checkData, checkOutcome, state, alertRequired, timeOfCheck);
+
     // update the check data
     var newCheckData = checkData;
     newCheckData.state = state;
-    newCheckData.lastChecked = Date.now();
+    newCheckData.lastChecked = timeOfCheck;
 
     // save the updates 
     _data.update('checks', newCheckData.id, newCheckData, (error) => {
@@ -158,7 +164,7 @@ worker.performCheckOutcome = (checkData, checkOutcome) => {
                 console.log('Check outcome not changed, alert not required');
             }
         }else {
-            console.log('Error : failed while saving the check updates');
+            console.log('Error : failed while saving the check updates - ',error);
         }
     });
 };
@@ -172,9 +178,73 @@ worker.alertUserForStatusChange = (newCheckData) => {
         if(!error){
             console.log('Success : user was alerted for status change');
         }else {
-            console.log('Error : failed to send SMS alert who has state change');
+            console.log('Error : failed to send SMS alert who has state change - ',error);
         }
     }); 
+};
+
+// logging the required data
+worker.log = (checkData, checkOutcome, state, alertRequired, timeOfCheck) => {
+    var logData = {
+        'check' : checkData,
+        'outcome' : checkOutcome,
+        'state' : state,
+        'alert' : alertRequired,
+        'time' : timeOfCheck
+    };
+
+    // convert data to string
+    var logString = JSON.stringify(logData);
+
+    // set name of logfile
+    var logFileName = checkData.id;
+
+    // append log string to file
+    _logs.append(logFileName, logString, (error) => {
+        if(error) {
+            console.log('Successfully logged data in logfile');
+        }else {
+            console.log('Error : failed to append logs in logfile - ',error);
+        }
+    });
+};
+
+// compress the logs
+worker.rotateLogs = () => {
+    // list all the non-compressed log files
+    _logs.list(false, (error, logs) => {
+        if(!error && logs && logs.length > 0){
+            console.log('Log files : ',logs);
+            logs.forEach((logfile) => {
+                // compress the data to the different file
+                var logId = logfile.replace('.log','');
+                var newFileId = logId+'-'+Date.now();
+                _logs.compress(logId, newFileId, (error) => {
+                    if(!error) {
+                        // truncate the log file
+                        _logs.truncate(logId, (error) => {
+                            if(!error) {
+                                console.log('Success truncating log file');
+                            }else {
+                                console.log('Error : failed to truncate the log file - ',error);
+                            }
+                        });
+                    }else { 
+                        console.log('Error : failed to compress the log files - ',error);
+                    }
+                });
+            });
+        }else {
+            console.log('Error : could not find any uncompressed logs - ',error);
+        }
+    });
+};
+
+// start the loop that compresses the logs
+worker.logRotationLoop = () => {
+    setInterval(() => {
+        worker.rotateLogs();
+    }, 1000 * 60 * 60 * 24);
 };
 
 // Init the workker script
@@ -184,6 +254,12 @@ worker.init = () => {
 
     // call the loop se checks will execute later 
     worker.loop();
+
+    // compress all the logs
+    worker.rotateLogs();
+
+    // call the compression loop, so logs will be compressed later on
+    worker.logRotationLoop();
 };
 
 // Export the worker api
