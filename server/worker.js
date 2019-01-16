@@ -21,7 +21,7 @@ worker.gatherAllChecks = () => {
     // get all the checks 
     _data.list('checks', (error, checks) => {
         if(!error && checks && checks.length > 0){
-            checks.array.forEach(check => {
+            checks.forEach(check => {
                 // read in the check data
                 _data.read('checks', check, (error, checkData) => {
                     if(!error && checkData) {
@@ -75,7 +75,7 @@ worker.performCheck = (checkData) => {
     var outcomeSent = false;
 
     // parse the hostname and path out the original check data
-    var parseUrl = url.parseUrl(checkData.protocol+'://'+checkData.url, true);
+    var parseUrl = url.parse(checkData.protocol+'://'+checkData.url, true);
     var hostname = parseUrl.hostname;
     var path = parseUrl.path;
 
@@ -138,7 +138,43 @@ worker.performCheck = (checkData) => {
 // process check data, update check data as needed, trigger an alert if required
 // special logic for handling the check that has been never checked before
 worker.performCheckOutcome = (checkData, checkOutcome) => {
+    var state = !checkOutcome.error && checkOutcome.responseCode && checkData.successCodes.indexOf(checkOutcome.responseCode) > -1 ? 'up' : 'down';
 
+    // decide if alert is required
+    var alertRequired = checkData.lastChecked && checkData.state !== state ? true : false;
+
+    // update the check data
+    var newCheckData = checkData;
+    newCheckData.state = state;
+    newCheckData.lastChecked = Date.now();
+
+    // save the updates 
+    _data.update('checks', newCheckData.id, newCheckData, (error) => {
+        if(!error) {
+            // send alert if required
+            if(alertRequired){
+                worker.alertUserForStatusChange(newCheckData);
+            }else {
+                console.log('Check outcome not changed, alert not required');
+            }
+        }else {
+            console.log('Error : failed while saving the check updates');
+        }
+    });
+};
+
+// send sms later using the twilio api configured
+worker.alertUserForStatusChange = (newCheckData) => {
+    var msg = 'Alert : Your check for '+newCheckData.method.toUpperCase()
+    +' '+newCheckData.protocol+'://'+newCheckData.url+' is currently '+newCheckData.state;
+
+    helpers.sendTwilioSMS(newCheckData.userPhone, msg, (error) => {
+        if(!error){
+            console.log('Success : user was alerted for status change');
+        }else {
+            console.log('Error : failed to send SMS alert who has state change');
+        }
+    }); 
 };
 
 // Init the workker script
