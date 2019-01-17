@@ -6,7 +6,11 @@ const path = require('path');
 const config = require('../config/config.js');
 const StringDecoder = require('string_decoder').StringDecoder;
 const handlers = require('../lib/handlers');
-const helpers = require('../lib/helpers')
+const helpers = require('../lib/helpers');
+const util = require('util');
+const debug = util.debuglog('server');
+// debug logs will appear only when we debug in server node
+// NODE_DEBUG=server node index.js
 
 // Instantiate the server
 var server = {};
@@ -69,7 +73,12 @@ server.unifiedServer = (req,res) => {
             res.writeHead(statusCode);
             res.end(payloadString);
 
-            console.log('Returning this response : ',statusCode, payloadString);
+            // { 32:green, 31:red }
+            if(statusCode == 200){
+                debug('\x1b[32m%s\x1b[0m', 'Returning response : ',statusCode, payloadString);
+            }else {
+                debug('\x1b[31m%s\x1b[0m', 'Returning response : ',statusCode, payloadString);
+            }
         });
 
     });
@@ -103,12 +112,12 @@ server.init = ()=>{
 
     // Start the HTTP server
     server.httpServer.listen(config.httpPort, function(){
-        console.log('HTTP server is listening at port : '+config.httpPort+' in '+config.envName+' environment.');
+        console.log('\x1b[32m%s\x1b[0m', 'HTTP server is listening at port : '+config.httpPort+' in '+config.envName+' environment.');
     });
 
     // Start the HTTPS server
     server.httpsServer.listen(config.httpsPort, function(){
-        console.log('HTTPS server is listening at port : '+config.httpsPort+' in '+config.envName+' environment.');
+        console.log('\x1b[32m%s\x1b[0m', 'HTTPS server is listening at port : '+config.httpsPort+' in '+config.envName+' environment.');
     });
 
 };

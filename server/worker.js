@@ -6,6 +6,10 @@ const path = require('path');
 const _data = require('../lib/data.js');
 const helpers = require('../lib/helpers');
 const _logs = require('../lib/log');
+const util = require('util');
+const debug = util.debuglog('worker');
+// debug logs will appear only when we debug in worker node
+// NODE_DEBUG=worker node index.js
 
 // Instantiate the worker object
 var worker = {};
@@ -29,12 +33,12 @@ worker.gatherAllChecks = () => {
                         // validate the check data
                         worker.validateCheckData(checkData);
                     }else {
-                        console.log('Error : failed to read check data - ',error);
+                        debug('Error : failed to read check data - ',error);
                     }
                 });
             });
         }else {
-            console.log('Error : failed to find any checks to process - ',error);
+            debug('Error : failed to find any checks to process - ',error);
         }
     });
 };
@@ -61,7 +65,7 @@ worker.validateCheckData = (checkData) => {
             // perform check on check data of valid
             worker.performCheck(checkData);
     }else {
-        console.log('Error : check data isn\'t properly formatted. Skipping check validation');
+        debug('Error : check data isn\'t properly formatted. Skipping check validation');
     }
 };
 
@@ -161,10 +165,10 @@ worker.performCheckOutcome = (checkData, checkOutcome) => {
             if(alertRequired){
                 worker.alertUserForStatusChange(newCheckData);
             }else {
-                console.log('Check outcome not changed, alert not required');
+                debug('Check outcome not changed, alert not required');
             }
         }else {
-            console.log('Error : failed while saving the check updates - ',error);
+            debug('Error : failed while saving the check updates - ',error);
         }
     });
 };
@@ -176,9 +180,9 @@ worker.alertUserForStatusChange = (newCheckData) => {
 
     helpers.sendTwilioSMS(newCheckData.userPhone, msg, (error) => {
         if(!error){
-            console.log('Success : user was alerted for status change');
+            debug('Success : user was alerted for status change');
         }else {
-            console.log('Error : failed to send SMS alert who has state change - ',error);
+            debug('Error : failed to send SMS alert who has state change - ',error);
         }
     }); 
 };
@@ -202,9 +206,9 @@ worker.log = (checkData, checkOutcome, state, alertRequired, timeOfCheck) => {
     // append log string to file
     _logs.append(logFileName, logString, (error) => {
         if(error) {
-            console.log('Successfully logged data in logfile');
+            debug('Successfully logged data in logfile');
         }else {
-            console.log('Error : failed to append logs in logfile - ',error);
+            debug('Error : failed to append logs in logfile - ',error);
         }
     });
 };
@@ -214,7 +218,6 @@ worker.rotateLogs = () => {
     // list all the non-compressed log files
     _logs.list(false, (error, logs) => {
         if(!error && logs && logs.length > 0){
-            console.log('Log files : ',logs);
             logs.forEach((logfile) => {
                 // compress the data to the different file
                 var logId = logfile.replace('.log','');
@@ -224,18 +227,18 @@ worker.rotateLogs = () => {
                         // truncate the log file
                         _logs.truncate(logId, (error) => {
                             if(!error) {
-                                console.log('Success truncating log file');
+                                debug('Success truncating log file');
                             }else {
-                                console.log('Error : failed to truncate the log file - ',error);
+                                debug('Error : failed to truncate the log file - ',error);
                             }
                         });
                     }else { 
-                        console.log('Error : failed to compress the log files - ',error);
+                        debug('Error : failed to compress the log files - ',error);
                     }
                 });
             });
         }else {
-            console.log('Error : could not find any uncompressed logs - ',error);
+            debug('Error : could not find any uncompressed logs - ',error);
         }
     });
 };
@@ -249,6 +252,10 @@ worker.logRotationLoop = () => {
 
 // Init the workker script
 worker.init = () => {
+
+    // first parameter in console.log() is for color settings
+    console.log('\x1b[33m%s\x1b[0m', 'Background workers are running');
+
     // Execute all the checks immediatly
     worker.gatherAllChecks();
 
