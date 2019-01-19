@@ -1,0 +1,50 @@
+<html>
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="content-language" content="en-us">
+        <base href="{global.baseUrl}">
+
+        <!-- Meta tags-->
+        <title>{head.title} | {global.appName}</title>
+        <meta name="description" content="{global.description}">
+
+        <!-- Static assests -->
+        <link type="image/x-icon" rel="icon" href="favicon.ico">
+        <script type="text/javascript" charset="utf-8" src="public/app.js"></script>
+        <link rel="stylesheet" type="text/css" href="public/app.css">
+
+    </head>
+    <body class="{body.class}">
+        <!-- Page wrapper -->
+        <div class="wrapper">
+
+        <!-- Header -->
+        <div class="header">
+            <!-- Logo -->
+            <a class="logo" href="/"></a>
+
+            <!-- Navigation -->
+            <ul class="menu">
+                <li>
+                    <a href="/">Home</a>
+                </li>
+                <li>
+                    <a class="loggedOut" href="/">Signup</a>
+                </li>
+                <li>
+                    <a class="loggedOut" href="/">Login</a>
+                </li>
+                <li>
+                    <a class="loggedIn" href="/">Dashboard</a>
+                </li>
+                <li>
+                    <a class="loggedIn" href="/">Account Settings</a>
+                </li>
+                <li>
+                    <a class="loggedIn" href="/">Signout</a>
+                </li>
+            </ul>
+        </div>
+
+        <!-- Class specific content -->
+        <div class="content">

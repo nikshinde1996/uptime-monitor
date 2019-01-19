@@ -16,6 +16,12 @@ environments.development = {
         'accountSid' : '**********************************',
         'authToken' : '***********************************',
         'fromPhone' : '************'
+    },
+    'templateGlobals' : {
+        'appName' : 'UptimeMonitor',
+        'companyName' : 'Uptime Inc',
+        'yearCreated' : '2019',
+        'baseUrl' : 'http://localhost:3000'
     }
 }
 
@@ -30,6 +36,12 @@ environments.staging = {
         'accountSid' : '**********************************',
         'authToken' : '***********************************',
         'fromPhone' : '************'
+    },
+    'templateGlobals' : {
+        'appName' : 'UptimeMonitor',
+        'companyName' : 'Uptime Inc',
+        'yearCreated' : '2019',
+        'baseUrl' : 'http://localhost:5000'
     }
 }
 
@@ -44,6 +56,12 @@ environments.production = {
         'accountSid' : '**********************************',
         'authToken' : '***********************************',
         'fromPhone' : '************'
+    },
+    'templateGlobals' : {
+        'appName' : 'UptimeMonitor',
+        'companyName' : 'Uptime Inc',
+        'yearCreated' : '2019',
+        'baseUrl' : 'http://localhost:7000'
     }
 }
 
