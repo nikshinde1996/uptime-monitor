@@ -79,6 +79,41 @@ app.client.request = (headers, path, method, queryStringObject, payload, callbac
     xhr.send(payloadString);
 };
 
+// bind the logout button and events
+app.bindLogoutButton = () => {
+    document.querySelector("logoutButton").addEventListener(event => {
+        // stop from self redirecting
+        event.preventDefault();
+
+        // logout the currect user
+        app.logUserOut();
+    });
+} 
+
+// logout the current user anr remove all set-css/html attributes
+// later redirect user to the message page
+app.logUserOut = (redirectUser) => {
+    redirectUser = typeof(redirectUser) == 'boolean' ? redirectUser : false;
+
+    // get current token id
+    var tokenId = typeof(app.config.sessionToken.id) == 'string' ? app.config.sessionToken.id : false ;
+    
+    var queryStringObject = {
+        'id' : tokenId
+    };
+
+    // send above token id to app.request method to delete current token
+    app.client.request = (undefined,'api/tokens','DELETE',queryStringObject,undefined, (statusCode,responsePayload) => {
+        // reset sessionToken to false;
+        app.setSessionToken(false);
+
+        if(redirectUser){
+            window.location = '/session/deleted';
+        }
+    });
+}
+
+// bind the forms and related events
 app.bindForms = function() {
     if(document.querySelector("form")){
         var allForms = document.querySelectorAll("form");
@@ -175,16 +210,90 @@ app.formResponseProcessor = (formId, requestPayload, responsePayload) => {
     
     // immediatly login user if account creation is successful
     if(formId == 'accountCreate'){
-        console.log('Successfully created the account.');
+        var newPayload = {
+            'phone' : requestPayload.phone,
+            'password' : requestPayload.password
+        };
+
+        app.client.request(undefined, 'api/tokens', 'POST', undefined, newPayload, (newStatusCode, newResponsePayload) => {
+            if(statusCode === 200){
+                // if successfull, set the token and redirect to inner user page
+                app.setSessionToken(newResponsePayload);
+                window.location = '/checks/all'
+            }else {
+                // Set the formError field with the error text
+                document.querySelector("#"+formId+" .formError").innerHTML = 'Sorry, an error has occured. Please try again.';
+
+                // Show (unhide) the form error field on the form
+                document.querySelector("#"+formId+" .formError").style.display = 'block';
+            }
+        });
+
+        // on successful login, set token in local-storage and redirect user
+        if(formId == 'sessionCreate'){
+            app.setSessionToken(newResponsePayload);
+            window.location = '/checks/all';
+        }
+
+        // If forms saved successfully and they have success messages, show them
+        var formsWithSuccessMessages = ['accountEdit1', 'accountEdit2','checksEdit1'];
+        if(formsWithSuccessMessages.indexOf(formId) > -1){
+            document.querySelector("#"+formId+" .formSuccess").style.display = 'block';
+        }
+
+        // if user delete their account, redirect them to account-delete page
+        if(formId == 'accountEdit3') {
+            app.logUserOut(false);
+            window.location = '/account/deleted';
+        }
+
+        // if user create new check, redirect him back to dash board
+        if(formId == 'checksCreate') {
+            window.location = 'checks/all';
+        }
+
+        // if user delete the check, redirect him to the dash board
+        if(formId == 'checksEdit2') {
+            window.location = 'checks/all';
+        }
     }
 };
+
+// set the session token in localStorage provided by node for browser
+app.setSessionToken = (token) => {
+    app.config.sessionToken = token;
+    var tokenString = JSON.parse(token);
+    // localstorage is storage space given by node in browser
+    // its takes key-value pair as parameters, can retrieve value using key
+    localStorage.setItem('token', tokenString);
+
+    // set the logged in status for user and redirect user based on result
+    if(typeof(token) == 'object'){
+        app.setLoggedInClass(true);
+    }else {
+        app.setLoggedInClass(false);
+    }
+};
+
+// set/remove logged in class from html body
+app.setLoggedInClass = (add) => {
+    var body = document.querySelector("body");
+    if(add) {
+        body.classList.add('loggedIn');
+    }else {
+        body.classList.remove('loggedIn');
+    }
+};
+
+
 
 // init application, bind all the UI elements to respective events
 app.init = () => {
     // bind form submission
     app.bindForms();
 
-
+    // Bind logout logout button
+    app.bindLogoutButton();
 
 };
 
