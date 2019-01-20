@@ -48,6 +48,9 @@ server.unifiedServer = (req,res) => {
         // choose handler this request should go to
         var chosenHandler = typeof(server.router[trimmedPath]) !== 'undefined' ? server.router[trimmedPath] : handlers.notFound; 
 
+        // use public handler if request if to public directory
+        chosenHandler = trimmedPath.indexOf('public/') > -1 ? handlers.public : chosenHandler;
+        
         // construct data object to send to the handler
         var data = {
             'trimmedPath' : trimmedPath,
@@ -58,7 +61,7 @@ server.unifiedServer = (req,res) => {
         };
 
         // route the request to the handler specified in the router
-        chosenHandler(data, function(statusCode, payload, contentType) {
+        chosenHandler(data, (statusCode, payload, contentType) => {
             // determine the type of response (fallback to JSON)
             contentType = typeof(contentType) === 'string' ? contentType : 'json';
 
@@ -69,13 +72,34 @@ server.unifiedServer = (req,res) => {
             var payloadString = '';
             
             // return the response parts that are content specific
-            if(contentType == 'json') {
+            if(contentType === 'json') {
                 res.setHeader('Content-Type','application/json');
                 payload = typeof(payload) === 'object' ? payload : {};
                 payloadString = JSON.stringify(payload);
-            }else if(contentType == 'html') {
+            }
+            if(contentType === 'html') {
                 res.setHeader('Content-Type','text/html');
                 payloadString = typeof(payload) === 'string' ? payload : '';
+            }
+            if(contentType === 'favicon') {
+                res.setHeader('Content-Type','image/x-icon');
+                payloadString = typeof(payload) !== 'undefined' ? payload : '';
+            }
+            if(contentType === 'css') {
+                res.setHeader('Content-Type','text/css');
+                payloadString = typeof(payload) !== 'undefined' ? payload : '';
+            }
+            if(contentType === 'plain') {
+                res.setHeader('Content-Type','text/pain');
+                payloadString = typeof(payload) !== 'undefined' ? payload : '';
+            }
+            if(contentType === 'jpg') {
+                res.setHeader('Content-Type','image/jpg');
+                payloadString = typeof(payload) !== 'undefined' ? payload : '';
+            }
+            if(contentType === 'png') {
+                res.setHeader('Content-Type','image/png');
+                payloadString = typeof(payload) !== 'undefined' ? payload : '';
             }
 
             // return the response parts that are common to all content-types
@@ -94,7 +118,7 @@ server.unifiedServer = (req,res) => {
 }
 
 // Instantiate the HTTP server
-server.httpServer = http.createServer(function(req,res){
+server.httpServer = http.createServer((req,res) => {
     server.unifiedServer(req,res);
 });
 
@@ -104,7 +128,7 @@ server.httpsServerOptions = {
 };
 
 // Instantiate the HTTPS server
-server.httpsServer = https.createServer(server.httpsServerOptions, function(req,res){
+server.httpsServer = https.createServer(server.httpsServerOptions, (req,res) => {
     serverunifiedServer(req,res);
 });
 
@@ -123,19 +147,21 @@ server.router = {
     'ping' : handlers.ping,
     'api/users' : handlers.users,
     'api/tokens' : handlers.tokens,
-    'api/checks' : handlers.checks
+    'api/checks' : handlers.checks,
+    'public' : handlers.public,
+    'favicon.ico' : handlers.favicon
 }
 
 // Init the server script
 server.init = ()=>{
 
     // Start the HTTP server
-    server.httpServer.listen(config.httpPort, function(){
+    server.httpServer.listen(config.httpPort, () => {
         console.log('\x1b[32m%s\x1b[0m', 'HTTP server is listening at port : '+config.httpPort+' in '+config.envName+' environment.');
     });
 
     // Start the HTTPS server
-    server.httpsServer.listen(config.httpsPort, function(){
+    server.httpsServer.listen(config.httpsPort, () => {
         console.log('\x1b[32m%s\x1b[0m', 'HTTPS server is listening at port : '+config.httpsPort+' in '+config.envName+' environment.');
     });
 
