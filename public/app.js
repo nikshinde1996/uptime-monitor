@@ -275,6 +275,201 @@ app.setSessionToken = (token) => {
     }
 };
 
+// get session token from local storage
+app.setSessionToken = () => {
+    var tokenString = localStorage.getItem('token');
+    if(typeof(tokenString) == 'string'){
+        try {
+            var token = JSON.parse(tokenString);
+            app.config.sessionToken = token;
+            if(typeof(token) == 'object'){
+                app.setLoggedInClass(true);
+            }else {
+                app.setLoggedInClass(false);
+            }
+        }catch (e) {
+            console.log('JSON parse error : ',e);
+        }
+    }else {
+        app.config.sessionToken = false;
+        app.setLoggedInClass(false)    
+    }
+};
+
+// load data on page
+app.loadDataOnPage = () => {
+    var bodyClass = document.querySelector('body').classList;
+    var mainBodyClass = typeof(bodyClass[0]) == 'string' ? bodyClass[0] : false;
+
+    // based on main body class, set the content on current page
+    if(mainBodyClass == 'accountEdit'){
+        app.loadAccountEditPage();
+    }
+
+    if(mainBodyClass == 'checksEdit'){
+        app.loadChecksEditPage();
+    }
+
+    if(mainBodyClass == 'checksList'){
+        app.loadChecksListPage();
+    }
+};
+
+// load account edit page
+app.loadAccountEditPage = () => {
+    var phone = typeof(app.config.sessionToken.phone) == "string" && app.config.sessionToken.phone.length == 10 ?  app.config.sessionToken.phone : false;
+    if(phone) {
+        // fetch user data
+        var queryStringObject = {
+            'phone' : phone
+        };
+
+        // fetch details
+        app.client.request = (undefined,'api/users','GET',queryStringObject,undefined,(statusCode,responsePayload)=> {
+            if(statusCode == 200){
+                // fill old data
+                document.querySelector("#accountEdit1 .firstNameInput").value = responsePayload.firstName;
+                document.querySelector("#accountEdit1 .lastNameInput").value = responsePayload.lastName;
+                document.querySelector("#accountEdit1 .displayPhoneInput").value = responsePayload.phone;
+
+                // update hidden phone values
+                var hiddenPhoneNumbers = document.querySelectorAll("input.hiddenPhoneNumberInput");
+                for(var i=0;i<hiddenPhoneNumbers.length;i++){
+                    hiddenPhoneNumbers[i].value = responsePayload.phone;
+                }
+            }else {
+                // logout user
+                app.logUserOut();
+            }
+        });
+    }else {
+        // log user out for incorrect session details
+        app.logUserOut();
+    }
+};
+
+// load checks list page
+app.loadChecksListPage = () => {
+    var phone = typeof(app.config.sessionToken.phone) == 'string' ? app.config.sessionToken.phone : false;
+    if(phone) {
+        // fetch user data
+        var queryStringObject = {
+            'phone' : phone
+        };
+
+        // fetch user data
+        app.client.request = (undefined,'api/users','GET',queryStringObject,undefined,(statusCode,responsePayload) => {
+            if(statusCode == 200) {
+                //  get all checks for user
+                var allChecks = typeof(responsePayload.checks) == 'object' && responsePayload.checks instanceof Array && responsePayload.checks.length > 0 ? responsePayload.checks : [];
+                if(allChecks.length > 0){
+
+                    // show all the checks in the different rows
+                    allChecks.forEach(checkId => {
+                        var queryStringObject = {
+                            'id' : checkId
+                        };
+
+                        // fetch check details
+                        app.client.request = (undefined,'api/checks','GET',newQueryStringObject,undefined,(statusCode,responsePayload) => {
+                            if(statusCode == 200) {
+                                // update all detals in single row
+                                var table = document.getElementById('checksListTable');
+                                var tr = table.insertRow(-1);
+                                tr.classList.add("checkRow");
+                                var td0 = tr.insertCell(0);
+                                var td1 = tr.insertCell(1);
+                                var td2 = tr.insertCell(2);
+                                var td3 = tr.insertCell(3);
+                                var td4 = tr.insertCell(4);
+                                td0.innerHTML = responsePayload.method.toUpperCase();
+                                td1.innerHTML = responsePayload.protocol+'://';
+                                td2.innerHTML = responsePayload.url;
+                                var state = typeof(responsePayload.state) == 'string' ? responsePayload.state : 'unknown';
+                                td3.innerHTML = state;
+                                td4.innerHTML = '<a href="/checks/edit?id='+responsePayload.id+'">View / Edit / Delete</a>';
+                            }else {
+                                console.log('\x1b[31m%s\x1b[0m','Error while loading check details');
+                            }
+                        });
+
+                        if(allChecks.length < 5){
+                            // Show the createCheck CTA.... for dynamizally adding block
+                            document.getElementById("createCheckCTA").style.display = 'block';
+                        }
+                    });
+                }else {
+                    // set no checks messages on the loaded page
+                    document.getElementById("noChecksMessage").style.display = 'table-row';
+
+                    // Show the createCheck CTA
+                    document.getElementById("createCheckCTA").style.display = 'block';
+                }
+            }else {
+                // log user out
+                app.logUserOut();
+            }
+        })
+    }else {
+        // log user out
+        app.logUserOut();
+    }
+};
+
+// load checks edit page
+app.loadChecksEditPage = () => {
+    // get checkId from url - query string, if none found redirect to dash board
+    var checkId = typeof(window.location.href.split('=')[1]) == 'string' && window.location.href.split('=')[1].length > 0 ? window.location.href.split('=')[1] : false;
+    if(checkId) {
+        var queryStringObject = {
+            'id' : checkId 
+        };
+
+        // fetch all check data beloning to check Id
+        app.client.request = (undefined,'api/checks','GET',queryStringObject,undefined,(statusCode,responsePayload) => {
+            if(statusCode == 200) {
+
+                // update checks data into visible and hidden fields
+                var hiddenIdInputs = document.querySelectorAll("input.hiddenIdInput");
+                for(var i = 0; i < hiddenIdInputs.length; i++){
+                    hiddenIdInputs[i].value = responsePayload.id;
+                }
+
+                document.querySelector("#checksEdit1 .displayIdInput").value = responsePayload.id;
+                document.querySelector("#checksEdit1 .displayStateInput").value = responsePayload.state;
+                document.querySelector("#checksEdit1 .protocolInput").value = responsePayload.protocol;
+                document.querySelector("#checksEdit1 .urlInput").value = responsePayload.url;
+                document.querySelector("#checksEdit1 .methodInput").value = responsePayload.method;
+                document.querySelector("#checksEdit1 .timeoutInput").value = responsePayload.timeoutSeconds;
+                var successCodeCheckboxes = document.querySelectorAll("#checksEdit1 input.successCodesInput");
+                for(var i = 0; i < successCodeCheckboxes.length; i++){
+                    if(responsePayload.successCodes.indexOf(parseInt(successCodeCheckboxes[i].value)) > -1){
+                        successCodeCheckboxes[i].checked = true;
+                    }
+                }
+            }else {
+                // redirect to dash borad page
+                window.location = '/checks/all';
+            }
+        });
+    }else {
+        // redirect to dash board page
+        window.location = '/checks/all';
+    }
+};
+
+
+// renew token every minute
+app.tokenRenewalLoop = () => {
+    setInterval(()=> {
+        app.renewToken = (error) => {
+            if(!error) {
+                console.log('Token renewed successfully : '+ Date.now());
+            }
+        };
+    }, 1000 * 60 );
+};
+
 // set/remove logged in class from html body
 app.setLoggedInClass = (add) => {
     var body = document.querySelector("body");
@@ -285,6 +480,43 @@ app.setLoggedInClass = (add) => {
     }
 };
 
+// renew token
+app.renewToken = (callback) => {
+    var currentToken = typeof(app.config.sessionToken) == 'object' ? app.config.sessionToken : false;
+    if(currentToken) {
+        // update/extend token with new id
+        var payload = {
+            'id' : currentToken.id,
+            'extend' : true
+        };
+
+        // set app request to /api/tokens for setting the new token
+        app.client.request = (undefined,'api/tokens','PUT',undefined,payload,(statusCode,responsePayload) => {
+            if(statusCode == 200){
+                // new token has been extended, get token details and update in current session
+                var queryStringObject = {'id' : currentToken.id};
+                app.client.request = (undefined,'api/tokens','GET',queryStringObject,undefined,(statusCode,responsePayload) => {
+                    if(statusCode == 200){
+                        app.setSessionToken(responsePayload);
+                        callback(false);
+                    }else {
+                        // display error on UI if needed
+                        app.setSessionToken(false);
+                        callback(true);
+                    }
+                });
+            }else {
+                // display error on UI if needed
+                app.setSessionToken(false);
+                callback(true);
+            }
+        });
+    }else {
+        // session token is not set
+        app.setSessionToken(false);
+        callback(true);
+    }
+};
 
 
 // init application, bind all the UI elements to respective events
@@ -295,6 +527,14 @@ app.init = () => {
     // Bind logout logout button
     app.bindLogoutButton();
 
+    // get session token from local storage
+    app.getSessionToken();
+
+    // start token renewal loop
+    app.tokenRenewalLoop();
+
+    // load data on page
+    app.loadDataOnPage();
 };
 
 // call app initialization as soon as window loads
