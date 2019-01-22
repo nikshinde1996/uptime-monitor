@@ -23,4 +23,15 @@ node index.js
 `Localhost url :` [http://localhost:3000](http://localhost:3000)
 
 
-### CLI Commands
+### CLI - Commands
+
+* `man`
+* `help`
+* `exit`
+* `stats`
+* `list users`
+* `more user info --{userId}`
+* `list checks`
+* `more check info --{checkId}`
+* `list logs`
+* `more log info --{logId}`
