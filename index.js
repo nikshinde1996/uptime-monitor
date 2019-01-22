@@ -1,5 +1,6 @@
-const server = require('./server/server');
-const worker = require('./server/worker');
+const server = require('./lib/server');
+const worker = require('./lib/worker');
+const cli = require('./lib/cli');
 
 // Declare the app
 var app = {};
@@ -11,6 +12,11 @@ app.init = () => {
 
     // start the worker
     worker.init();
+
+    // start CLI at the end
+    setTimeout(() => {
+        cli.init();
+    }, 50);
 };
 
 // Execute the app
