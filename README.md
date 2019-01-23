@@ -31,7 +31,7 @@ node index.js
 * `stats`
 * `list users`
 * `more user info --{userId}`
-* `list checks`
+* `list checks {optional : --up --down}`
 * `more check info --{checkId}`
 * `list logs`
-* `more log info --{logId}`
+* `more log info --{logFileName}`
