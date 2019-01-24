@@ -25,6 +25,26 @@ environments.development = {
     }
 }
 
+// testing environment
+environments.testing = {
+    'httpPort' : 3000,
+    'httpsPort' : 3001,
+    'envName' : 'development',
+    'hashingSecret' : 'HHJhjhhghJBNM',
+    'maxChecks' : 5,
+    'twilio' : {
+        'accountSid' : '**********************************',
+        'authToken' : '***********************************',
+        'fromPhone' : '************'
+    },
+    'templateGlobals' : {
+        'appName' : 'UptimeMonitor',
+        'companyName' : 'Uptime Inc',
+        'yearCreated' : '2019',
+        'baseUrl' : 'http://localhost:3000'
+    }
+}
+
 // Staging environment
 environments.staging = {
     'httpPort' : 5000,
