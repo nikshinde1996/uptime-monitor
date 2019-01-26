@@ -14,7 +14,7 @@
             "type": "node",
             "request": "launch",
             "name": "Launch Program",
-            "program": "${workspaceFolder}/lib/handlers.js"
+            "program": "${workspaceFolder}/index.js"
         }
     ]
 }

@@ -81,7 +81,7 @@ app.client.request = (headers, path, method, queryStringObject, payload, callbac
 
 // bind the logout button and events
 app.bindLogoutButton = () => {
-    document.querySelector("logoutButton").addEventListener(event => {
+    document.getElementById("logoutButton").addEventListener('click', (event) => {
         // stop from self redirecting
         event.preventDefault();
 
@@ -216,7 +216,7 @@ app.formResponseProcessor = (formId, requestPayload, responsePayload) => {
         };
 
         app.client.request(undefined, 'api/tokens', 'POST', undefined, newPayload, (newStatusCode, newResponsePayload) => {
-            if(statusCode === 200){
+            if(newStatusCode === 200){
                 // if successfull, set the token and redirect to inner user page
                 app.setSessionToken(newResponsePayload);
                 window.location = '/checks/all'
@@ -276,7 +276,7 @@ app.setSessionToken = (token) => {
 };
 
 // get session token from local storage
-app.setSessionToken = () => {
+app.getSessionToken = () => {
     var tokenString = localStorage.getItem('token');
     if(typeof(tokenString) == 'string'){
         try {
