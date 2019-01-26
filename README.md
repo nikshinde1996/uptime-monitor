@@ -1,7 +1,7 @@
 
 # uptime-monitior - no framework, no npm.
 
-### Development Requirements
+### Development CheckPoints
 
 - [x] The API listens on PORT and accepts incoming HTTP requests for `POST, GET, PUT, DELETE and HEAD`.
 - [x] The API allows client to connect, create a new user , then edit and delete the user.
